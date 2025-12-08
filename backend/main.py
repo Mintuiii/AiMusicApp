@@ -34,11 +34,11 @@ def health():
 # ---------- Helpers ----------
 def ai_recommend(artists: List[str]) -> Dict[str, Any]:
     artist_list = ", ".join(artists)
-    # UPDATED PROMPT: Emphasizing "SMALL" and "OBSCURE" artists
+    # UPDATED PROMPT: Handles genres/tags as input too
     prompt = f"""
-    The user listens to these artists: {artist_list}.
-    1) Return 5–8 descriptive global tags (genres, moods, themes, style) for the overall taste.
-    2) Recommend 5 VERY small, niche, or underground artists (avoid popular/mainstream names entirely).
+    The user is interested in these artists, genres, or vibes: {artist_list}.
+    1) Return 5–8 descriptive global tags (genres, moods, themes, style) for this specific taste.
+    2) Recommend 5 VERY small, niche, or underground artists that fit this specific vibe (avoid popular/mainstream names).
     3) For each artist, give one-sentence why it fits AND 3 specific tags for that artist.
 
     Respond as strict JSON:
@@ -79,7 +79,6 @@ def enrich_with_itunes(artist_name: str) -> Dict[str, Any]:
             return {
                 "sampleUrl": item.get("previewUrl"),
                 "sampleTrack": item.get("trackName"),
-                # We will ignore samplePage for the link, using Last.fm instead
                 "image": item.get("artworkUrl100", "").replace("100x100bb.jpg", "400x400bb.jpg"),
             }
     except Exception:
@@ -118,7 +117,6 @@ def enrich_recommendations(recs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             if lf_img:
                 meta["image"] = lf_img
         
-        # Generate Last.fm Link
         encoded_name = urllib.parse.quote_plus(name)
         last_fm_link = f"https://www.last.fm/music/{encoded_name}"
 
@@ -129,7 +127,7 @@ def enrich_recommendations(recs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "image": meta.get("image"),
             "sampleUrl": meta.get("sampleUrl"),
             "sampleTrack": meta.get("sampleTrack"),
-            "lastFmUrl": last_fm_link, # ADDED: Direct link to Last.fm
+            "lastFmUrl": last_fm_link,
         })
     return enriched
 
