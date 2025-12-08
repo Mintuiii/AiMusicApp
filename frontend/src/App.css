@@ -1,38 +1,258 @@
-.App {
-  text-align: center;
+:root {
+  --bg: #1a0b2e;          /* Deep Purple Background */
+  --fg: #e0d0f5;          /* Lavender Text */
+  --accent: #764ba2;      /* Vivid Purple Accent */
+  --accent-hover: #9b6bc4;
+  --card-bg: #271342;     /* Slightly lighter purple for cards */
+  --border: #432c66;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.app-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 60px 20px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* --- Header --- */
+.header {
+  margin-bottom: 50px;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-shadow: 0 0 20px rgba(118, 75, 162, 0.5);
+}
+
+.subtitle {
+  color: #a89bbd;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* --- Input Area --- */
+.search-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 15px;
+  margin-bottom: 60px;
+}
+
+textarea {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  padding: 15px 0;
+  font-size: 1.2rem;
+  font-family: inherit;
+  color: #ffffff;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+textarea:focus {
+  border-bottom: 2px solid var(--accent);
+}
+
+textarea::placeholder {
+  color: #5c4b75;
+}
+
+.btn-main {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.btn-main:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 15px rgba(118, 75, 162, 0.6);
+}
+
+.btn-main:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* --- Global Tags --- */
+.vibe-section {
+  margin-bottom: 50px;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #a89bbd;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  border: 1px solid var(--accent);
+  color: #e0d0f5;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 20px;
+}
+
+/* --- Artist List --- */
+.artist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.artist-item {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.artist-item:hover {
+  border-color: var(--accent);
+}
+
+.artist-img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #1a0b2e;
+  flex-shrink: 0;
+}
+
+.artist-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+}
+
+.artist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.artist-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.track-link {
+  font-size: 0.8rem;
+  color: var(--accent-hover);
+  text-decoration: none;
+}
+
+.track-link:hover {
+  text-decoration: underline;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.artist-desc {
+  font-size: 0.95rem;
+  color: #cbbbd9;
+  margin: 0 0 12px 0;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.artist-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.mini-tag {
+  font-size: 0.7rem;
+  color: #a89bbd;
+  background: rgba(0,0,0,0.2);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* --- Custom Player --- */
+.custom-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.play-btn {
+  background: white;
+  color: var(--bg);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+
+.play-btn:active {
+  transform: scale(0.95);
+}
+
+.player-label {
+  font-size: 0.8rem;
+  color: var(--accent-hover);
+  font-weight: 500;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+/* Mobile Tweak */
+@media (max-width: 600px) {
+  .artist-item {
+    flex-direction: column;
   }
-  to {
-    transform: rotate(360deg);
+  .artist-img {
+    width: 100%;
+    height: 200px;
   }
 }

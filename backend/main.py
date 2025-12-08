@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
-import os, json, requests
+import os, json, requests, urllib.parse
 from dotenv import load_dotenv
 from typing import List, Dict, Any
 
@@ -10,16 +10,16 @@ load_dotenv()
 
 # --- Configure Gemini ---
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-GEMINI_MODEL = "models/gemini-2.5-flash"  # use one from your list
+GEMINI_MODEL = "models/gemini-2.5-flash"
 
 # --- Optional Last.fm ---
-LASTFM_KEY = os.getenv("LASTFM_API_KEY")  # optional
+LASTFM_KEY = os.getenv("LASTFM_API_KEY")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # during local dev
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -34,17 +34,18 @@ def health():
 # ---------- Helpers ----------
 def ai_recommend(artists: List[str]) -> Dict[str, Any]:
     artist_list = ", ".join(artists)
+    # UPDATED PROMPT: Emphasizing "SMALL" and "OBSCURE" artists
     prompt = f"""
     The user listens to these artists: {artist_list}.
-    1) Return 5–8 descriptive tags (genres, moods, themes, style).
-    2) Recommend 5 lesser-known artists (avoid mainstream).
-    3) For each, give one-sentence why it fits.
+    1) Return 5–8 descriptive global tags (genres, moods, themes, style) for the overall taste.
+    2) Recommend 5 VERY small, niche, or underground artists (avoid popular/mainstream names entirely).
+    3) For each artist, give one-sentence why it fits AND 3 specific tags for that artist.
 
     Respond as strict JSON:
     {{
       "tags": ["tag1", "..."],
       "recommendations": [
-        {{"artist": "Name", "explanation": "one sentence"}}
+        {{"artist": "Name", "explanation": "one sentence", "tags": ["tag1", "tag2", "tag3"]}}
       ]
     }}
     """
@@ -54,7 +55,6 @@ def ai_recommend(artists: List[str]) -> Dict[str, Any]:
     try:
         return json.loads(resp.text)
     except Exception:
-        # Try to coerce basic JSON if model added extra text
         txt = resp.text.strip()
         start = txt.find("{")
         end = txt.rfind("}")
@@ -63,11 +63,7 @@ def ai_recommend(artists: List[str]) -> Dict[str, Any]:
         return {"tags": [], "recommendations": []}
 
 def enrich_with_itunes(artist_name: str) -> Dict[str, Any]:
-    """
-    Get a sample preview + artwork using iTunes Search (no auth).
-    """
     try:
-        # First: try to get a top track with preview
         r = requests.get(
             "https://itunes.apple.com/search",
             params={
@@ -83,17 +79,14 @@ def enrich_with_itunes(artist_name: str) -> Dict[str, Any]:
             return {
                 "sampleUrl": item.get("previewUrl"),
                 "sampleTrack": item.get("trackName"),
-                "samplePage": item.get("trackViewUrl"),
+                # We will ignore samplePage for the link, using Last.fm instead
                 "image": item.get("artworkUrl100", "").replace("100x100bb.jpg", "400x400bb.jpg"),
             }
     except Exception:
         pass
-    return {"sampleUrl": None, "sampleTrack": None, "samplePage": None, "image": None}
+    return {"sampleUrl": None, "sampleTrack": None, "image": None}
 
 def fallback_lastfm_image(artist_name: str) -> str | None:
-    """
-    Optional: fetch a bigger artist image from Last.fm if available.
-    """
     if not LASTFM_KEY:
         return None
     try:
@@ -109,31 +102,34 @@ def fallback_lastfm_image(artist_name: str) -> str | None:
         )
         j = r.json()
         images = j.get("artist", {}).get("image", [])
-        # pick the largest image entry if present
         if images:
-            # last item is typically the largest (mega)
             return images[-1].get("#text") or None
     except Exception:
         pass
     return None
 
-def enrich_recommendations(recs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+def enrich_recommendations(recs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     enriched = []
     for r in recs:
         name = r.get("artist", "")
         meta = enrich_with_itunes(name)
-        # If no artwork from iTunes, try Last.fm
         if not meta.get("image"):
             lf_img = fallback_lastfm_image(name)
             if lf_img:
                 meta["image"] = lf_img
+        
+        # Generate Last.fm Link
+        encoded_name = urllib.parse.quote_plus(name)
+        last_fm_link = f"https://www.last.fm/music/{encoded_name}"
+
         enriched.append({
             "artist": name,
             "explanation": r.get("explanation", ""),
+            "tags": r.get("tags", []),
             "image": meta.get("image"),
             "sampleUrl": meta.get("sampleUrl"),
             "sampleTrack": meta.get("sampleTrack"),
-            "samplePage": meta.get("samplePage"),
+            "lastFmUrl": last_fm_link, # ADDED: Direct link to Last.fm
         })
     return enriched
 
@@ -142,6 +138,6 @@ def enrich_recommendations(recs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
 def analyze_artists(data: ArtistInput):
     base = ai_recommend(data.artists or [])
     tags = base.get("tags", [])
-    recs = base.get("recommendations", [])[:5]  # keep it snappy
+    recs = base.get("recommendations", [])[:5]
     enriched = enrich_recommendations(recs)
     return {"tags": tags, "recommendations": enriched}
