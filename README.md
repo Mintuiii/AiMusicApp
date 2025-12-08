@@ -28,8 +28,6 @@ Built with a sleek, minimalist purple interface, this app uses Google Gemini AI 
 
 ### 1. Backend Setup
 
-### 1. Backend Setup
-
 Navigate to the backend directory and set up the Python environment.
 
 1.  **Navigate to the folder:**
