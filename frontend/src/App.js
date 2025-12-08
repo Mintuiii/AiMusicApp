@@ -67,7 +67,7 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1>Sonic Compass</h1>
+        <h1>Uncover</h1>
         <p className="subtitle">Discover obscure & underground gems based on your taste.</p>
       </header>
 
