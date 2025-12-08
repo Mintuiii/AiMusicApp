@@ -1,4 +1,35 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import "./App.css";
+
+// --- Custom Minimalist Player Component ---
+const CustomPlayer = ({ src }) => {
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div className="custom-player">
+      <audio 
+        ref={audioRef} 
+        src={src} 
+        onEnded={() => setIsPlaying(false)} 
+        onPause={() => setIsPlaying(false)}
+      />
+      <button className="play-btn" onClick={togglePlay}>
+        {isPlaying ? "❚❚" : "▶"}
+      </button>
+      <span className="player-label">{isPlaying ? "Playing Snippet" : "Play Preview"}</span>
+    </div>
+  );
+};
 
 function App() {
   const [input, setInput] = useState("");
@@ -8,10 +39,12 @@ function App() {
   const [error, setError] = useState("");
 
   const analyze = async () => {
+    if (!input.trim()) return;
     setLoading(true);
     setError("");
     setTags([]);
     setRecs([]);
+
     try {
       const artists = input.split(",").map(a => a.trim()).filter(Boolean);
       const res = await fetch("http://127.0.0.1:8000/analyze", {
@@ -19,93 +52,83 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ artists }),
       });
-      if (!res.ok) throw new Error(`Backend ${res.status}`);
+
+      if (!res.ok) throw new Error("Server error");
       const data = await res.json();
       setTags(data.tags || []);
       setRecs(data.recommendations || []);
     } catch (e) {
-      setError("Network/Server error: " + e.message);
+      setError("Could not fetch recommendations.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", padding: 32, maxWidth: 900, margin: "0 auto" }}>
-      <h1 style={{ marginBottom: 8 }}>🎧 AI Music Discovery</h1>
-      <p style={{ marginTop: 0, color: "#555" }}>
-        Enter artists you like (comma-separated), then I’ll tag the vibe and surface underrated artists—with images and 30s samples.
-      </p>
+    <div className="app-container">
+      <header className="header">
+        <h1>Sonic Compass</h1>
+        <p className="subtitle">Discover obscure & underground gems based on your taste.</p>
+      </header>
 
-      <textarea
-        rows={3}
-        style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #ddd" }}
-        placeholder="Lamp, Nujabes, Tomppabeats"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-      />
-
-      <button
-        onClick={analyze}
-        disabled={loading}
-        style={{
-          marginTop: 12, padding: "10px 16px", borderRadius: 12, border: "none",
-          background: "#111", color: "white", cursor: "pointer"
-        }}
-      >
-        {loading ? "Analyzing..." : "Discover Music"}
-      </button>
-
-      {error && <div style={{ marginTop: 12, color: "crimson" }}>{error}</div>}
+      <div className="search-section">
+        <textarea
+          rows={1}
+          placeholder="List some artists..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button className="btn-main" onClick={analyze} disabled={loading}>
+          {loading ? "DIGGING..." : "ANALYZE"}
+        </button>
+        {error && <div className="error">{error}</div>}
+      </div>
 
       {tags.length > 0 && (
-        <>
-          <h2 style={{ marginTop: 24 }}>Tags</h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <div className="vibe-section">
+          <span className="section-label">Detected Vibe</span>
+          <div className="tag-cloud">
             {tags.map((t, i) => (
-              <span key={i} style={{ background: "#eee", padding: "6px 12px", borderRadius: 20 }}>{t}</span>
+              <span key={i} className="tag">{t}</span>
             ))}
           </div>
-        </>
+        </div>
       )}
 
-      {recs.length > 0 && (
-        <>
-          <h2 style={{ marginTop: 24 }}>Recommended Artists</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
-            {recs.map((r, i) => (
-              <div key={i} style={{
-                border: "1px solid #eee", borderRadius: 14, padding: 14,
-                display: "flex", flexDirection: "column", gap: 10
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img
-                    src={r.image || "https://via.placeholder.com/400?text=No+Image"}
-                    alt={r.artist}
-                    style={{ width: 56, height: 56, borderRadius: 8, objectFit: "cover" }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{r.artist}</div>
-                    {r.sampleTrack && (
-                      <a href={r.samplePage} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#555" }}>
-                        {r.sampleTrack}
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                <p style={{ margin: 0, color: "#444" }}>{r.explanation}</p>
-
-                {r.sampleUrl ? (
-                  <audio controls src={r.sampleUrl} style={{ width: "100%" }} />
-                ) : (
-                  <div style={{ fontSize: 12, color: "#777" }}>No preview available</div>
-                )}
+      <div className="artist-list">
+        {recs.map((r, i) => (
+          <div key={i} className="artist-item">
+            <img 
+              src={r.image || "https://via.placeholder.com/150/2a0a38/ffffff?text=?"} 
+              alt={r.artist} 
+              className="artist-img"
+            />
+            <div className="artist-info">
+              <div className="artist-header">
+                <h3 className="artist-name">{r.artist}</h3>
+                {/* Updated to use Last.fm URL */}
+                <a href={r.lastFmUrl} target="_blank" rel="noreferrer" className="track-link">
+                  Last.fm ↗
+                </a>
               </div>
-            ))}
+              
+              {r.tags && (
+                <div className="artist-tags">
+                  {r.tags.map((tag, idx) => (
+                    <span key={idx} className="mini-tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+
+              <p className="artist-desc">{r.explanation}</p>
+
+              {r.sampleUrl && (
+                <CustomPlayer src={r.sampleUrl} />
+              )}
+            </div>
           </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }
