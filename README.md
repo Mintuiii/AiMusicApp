@@ -1,4 +1,4 @@
-# 🎧 Sonic Compass
+# 🎧 Uncover
 
 An AI-powered music discovery tool designed to dig deep and find **underground, obscure, and niche** artists based on your personal taste. 
 
