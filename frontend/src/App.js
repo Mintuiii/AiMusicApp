@@ -85,7 +85,7 @@ function App() {
   return (
     <div className="app-container">
       <header className={`header ${isInitial ? 'hero-mode' : ''}`}>
-        <h1>Sonic Compass</h1>
+        <h1>Uncover</h1>
         <p className="subtitle">Navigate the underground.</p>
       </header>
 
