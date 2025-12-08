@@ -28,23 +28,44 @@ Built with a sleek, minimalist purple interface, this app uses Google Gemini AI 
 
 ### 1. Backend Setup
 
-1.  Navigate to the backend:
+### 1. Backend Setup
+
+Navigate to the backend directory and set up the Python environment.
+
+1.  **Navigate to the folder:**
     ```bash
     cd backend
     ```
-2.  Install Python dependencies:
+
+2.  **Create a virtual environment (optional but recommended):**
+    ```bash
+    python -m venv venv
+    # Windows
+    venv\Scripts\activate
+    # Mac/Linux
+    source venv/bin/activate
+    ```
+
+3.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
-3.  Create a `.env` file in the `backend/` folder:
+
+4.  **Configure Environment Variables:**
+    Create a file named `.env` in the `backend/` folder and add your API keys:
     ```env
-    GEMINI_API_KEY="your_google_ai_key"
-    LASTFM_API_KEY="your_lastfm_key"
+    GEMINI_API_KEY="your_actual_gemini_key_here"
+    # Optional: Add Last.fm key if you want better artist images
+    LASTFM_API_KEY="your_lastfm_key_here"
     ```
-4.  Start the server:
+
+5.  **Run the Server:**
     ```bash
     uvicorn main:app --reload
     ```
+    The backend will start at `http://127.0.0.1:8000`. You can check `http://127.0.0.1:8000/health` to confirm it is running.
+
+---
 
 ### 2. Frontend Setup
 
